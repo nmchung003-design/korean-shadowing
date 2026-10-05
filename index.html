@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>한국어 쉐도잉 왕 – ElevenLabs</title>
+<style>
+:root{--bg:#f4f6fb;--card:#fff;--text:#1d2433;--muted:#6b7488;--border:#e3e7f0;--primary:#4f6df5;--primary-soft:#e9edff;
+--good:#16a34a;--good-bg:#dcfce7;--bad:#dc2626;--bad-bg:#fee2e2;--rec:#ef4444;--a:#4f6df5;--b:#f59e0b}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1420;--card:#192031;--text:#eef1f8;--muted:#98a2b8;--border:#2a3349;--primary:#7b92ff;--primary-soft:#232c4a;--good:#4ade80;--good-bg:#12351f;--bad:#f87171;--bad-bg:#3d1717;--a:#7b92ff}}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans KR","Malgun Gothic",sans-serif;line-height:1.5}
+.wrap{max-width:1000px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:1.7rem;margin:0 0 14px;text-align:center}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px;box-shadow:0 2px 10px rgba(0,0,0,.04);margin-bottom:16px}
+.panel h2{font-size:1rem;margin:0 0 12px;color:var(--muted);font-weight:600}
+.row{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:700px){.row.two{grid-template-columns:1fr 1fr}}
+label{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:4px}
+input,select{width:100%;padding:11px 12px;border-radius:12px;border:2px solid var(--border);background:var(--bg);color:var(--text);font:inherit}
+input:focus,select:focus{outline:none;border-color:var(--primary)}
+.keyrow{display:flex;gap:8px}
+.keyrow input{flex:1}
+.hint{font-size:.8rem;color:var(--muted);margin-top:6px}
+.grid{display:grid;grid-template-columns:1fr;gap:16px}
+@media(min-width:800px){.grid{grid-template-columns:5fr 6fr;align-items:start}.grid .panel{margin-bottom:0}}
+.line{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;background:transparent;border:2px solid var(--border);border-radius:12px;padding:8px 10px;margin-bottom:6px;cursor:pointer;color:inherit;font:inherit}
+.line.active{border-color:var(--primary);background:var(--primary-soft)}
+.line.done{opacity:.6}
+.sp{flex:none;width:26px;height:26px;border-radius:50%;color:#fff;font-size:.8rem;display:grid;place-items:center;font-weight:700}
+.sp.A{background:var(--a)}.sp.B{background:var(--b)}
+.line .ko{font-weight:600}.line .vi{font-size:.82rem;color:var(--muted)}
+.nav{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.nav .pos{flex:1;text-align:center;font-weight:600}
+.bar{height:10px;background:var(--border);border-radius:99px;overflow:hidden;margin-bottom:14px}
+.bar i{display:block;height:100%;width:10%;background:linear-gradient(90deg,var(--primary),#8b5cf6);border-radius:99px;transition:width .3s}
+.cur{display:flex;gap:12px;align-items:flex-start}
+.cur .sp{width:34px;height:34px;font-size:1rem}
+.cur .ko{font-size:1.45rem;font-weight:700;line-height:1.5}
+.cur .vi{color:var(--muted);margin-top:2px}
+.btns{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}
+button.btn{flex:1 1 130px;border:0;border-radius:12px;padding:12px 14px;font:inherit;font-weight:600;cursor:pointer;background:var(--primary-soft);color:var(--primary)}
+button.btn:disabled{opacity:.4;cursor:default}
+button.btn.solid{background:var(--primary);color:#fff;flex:none}
+button.btn.rec{background:var(--rec);color:#fff}
+button.btn.rec.on{animation:pulse 1.1s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 8px rgba(239,68,68,.25)}}
+.status{min-height:1.4em;font-size:.9rem;color:var(--muted);word-break:break-word}
+.status.err{color:var(--bad)}
+.result{margin-top:14px;border-top:1px dashed var(--border);padding-top:14px}
+.hidden{display:none}
+.words{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 14px}
+.w{padding:4px 10px;border-radius:8px;font-size:1.15rem;font-weight:600}
+.w.ok{background:var(--good-bg);color:var(--good)}.w.no{background:var(--bad-bg);color:var(--bad)}
+.label{font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.heard{padding:10px 12px;background:var(--bg);border-radius:10px;font-size:1.05rem;margin:6px 0 14px;word-break:break-word}
+.score{display:flex;align-items:center;gap:14px}
+.ring{flex:none;width:84px;height:84px;border-radius:50%;display:grid;place-items:center;font-size:1.3rem;font-weight:800}
+.ring span{width:66px;height:66px;border-radius:50%;background:var(--card);display:grid;place-items:center}
+.msg{font-size:1.4rem;font-weight:800}.msg.good{color:var(--good)}.msg.bad{color:var(--bad)}
+.msg small{display:block;font-size:.9rem;font-weight:500;color:var(--muted)}
+.legend{font-size:.8rem;color:var(--muted);margin-top:10px}
+.legend b.g{color:var(--good)}.legend b.r{color:var(--bad)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🇰🇷 한국어 쉐도잉 왕</h1>
+
+  <section class="panel">
+    <h2>⚙️ Cài đặt ElevenLabs</h2>
+    <div class="row">
+      <div>
+        <label for="apiKey">ElevenLabs API Key</label>
+        <div class="keyrow">
+          <input id="apiKey" type="password" placeholder="Dán API key của bạn…" autocomplete="off">
+          <button class="btn solid" id="bSave">💾 Lưu</button>
+        </div>
+        <div class="hint" id="keyHint">Key chỉ được lưu trong LocalStorage của trình duyệt này.</div>
+      </div>
+      <div class="row two">
+        <div>
+          <label for="voiceSel">Chọn Giọng Nói</label>
+          <select id="voiceSel"></select>
+        </div>
+        <div>
+          <label for="customVoice">Custom Voice ID (tuỳ chọn, ưu tiên hơn menu)</label>
+          <input id="customVoice" placeholder="VD: 21m00Tcm4TlvDq8ikWAM" autocomplete="off">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <label for="topicSel">📚 Chọn bài hội thoại</label>
+    <select id="topicSel"></select>
+  </section>
+
+  <div class="grid">
+    <section class="panel">
+      <h2 id="listTitle">Hội thoại</h2>
+      <div id="list"></div>
+    </section>
+    <section class="panel">
+      <div class="nav">
+        <button class="btn" id="bPrev">⬅️ Câu trước</button>
+        <div class="pos" id="pos"></div>
+        <button class="btn" id="bNext">Câu tiếp theo ➡️</button>
+      </div>
+      <div class="bar"><i id="barFill"></i></div>
+      <div class="cur">
+        <div class="sp" id="curSp"></div>
+        <div><div class="ko" id="curKo"></div><div class="vi" id="curVi"></div></div>
+      </div>
+      <div class="btns">
+        <button class="btn" id="bNormal">🔊 Nghe giọng mẫu</button>
+        <button class="btn" id="bSlow">🐢 Nghe chậm</button>
+        <button class="btn rec" id="bRec">🎙️ Bắt đầu nói</button>
+      </div>
+      <div class="status" id="status"></div>
+      <div class="result hidden" id="result">
+        <div class="label">Câu gốc (so sánh)</div>
+        <div class="words" id="words"></div>
+        <div class="label">Bạn đã nói</div>
+        <div class="heard" id="heard"></div>
+        <div class="score">
+          <div class="ring" id="ring"><span id="pct">0%</span></div>
+          <div class="msg" id="msg"></div>
+        </div>
+        <div class="legend"><b class="g">Xanh lá</b> = đúng · <b class="r">Đỏ</b> = sai / bỏ sót</div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+const VOICES = [
+  {id:"VR6AewLTigWG4xSOukaG", name:"Giọng Nam 1 (Trầm ấm)"},
+  {id:"N2lLuZBxq1exdGIyWrVY", name:"Giọng Nam 2 (Trẻ trung)"},
+  {id:"ErXwobaYiN019PkySvjV", name:"Giọng Nam 3 (Mạnh mẽ)"},
+  {id:"21m00Tcm4TlvDq8ikWAM", name:"Giọng Nữ 1 (Nhẹ nhàng)"},
+  {id:"EXAVITQu4vr4xnSDxMaL", name:"Giọng Nữ 2 (Tự nhiên)"}
+];
+const TOPICS = [
+ {ko:"카페에서", vi:"Tại quán cà phê", lines:[
+  ["A","안녕하세요. 아이스 아메리카노 한 잔 주세요.","Xin chào. Cho tôi một ly Americano đá."],
+  ["B","네, 사이즈는 어떻게 하시겠어요?","Vâng, bạn muốn size nào?"],
+  ["A","큰 걸로 주세요. 그리고 케이크도 하나 주세요.","Cho tôi size lớn. Và cho thêm một cái bánh kem nữa."],
+  ["B","어떤 케이크로 드릴까요?","Bạn muốn bánh kem loại nào?"],
+  ["A","딸기 케이크로 할게요. 얼마예요?","Tôi lấy bánh kem dâu. Bao nhiêu tiền vậy?"],
+  ["B","모두 만 이천 원입니다. 카드로 계산하시겠어요?","Tổng cộng 12.000 won. Bạn thanh toán bằng thẻ chứ?"],
+  ["A","네, 카드로 할게요. 여기서 먹고 갈 거예요.","Vâng, tôi trả bằng thẻ. Tôi sẽ ăn ở đây."],
+  ["B","알겠습니다. 진동벨이 울리면 가져가세요.","Tôi hiểu rồi. Khi chuông rung thì hãy đến lấy nhé."],
+  ["A","와이파이 비밀번호가 뭐예요?","Mật khẩu wifi là gì vậy?"],
+  ["B","영수증에 적혀 있어요. 맛있게 드세요.","Có ghi trên hóa đơn. Chúc bạn ngon miệng."]]},
+ {ko:"지하철 타기", vi:"Đi tàu điện ngầm", lines:[
+  ["A","실례합니다. 시청역에 가려면 몇 호선을 타야 해요?","Xin lỗi. Muốn đến ga City Hall thì phải đi tuyến số mấy?"],
+  ["B","1호선을 타시면 돼요. 저쪽 승강장으로 가세요.","Bạn đi tuyến số 1. Hãy đến sân ga bên kia."],
+  ["A","감사합니다. 교통카드는 어디서 충전해요?","Cảm ơn. Nạp thẻ giao thông ở đâu vậy?"],
+  ["B","저기 있는 기계에서 충전할 수 있어요.","Bạn có thể nạp ở cái máy đằng kia."],
+  ["A","여기서 몇 정거장 가야 해요?","Từ đây phải đi mấy ga?"],
+  ["B","네 정거장만 가면 돼요. 약 십 분 걸려요.","Chỉ cần đi bốn ga. Mất khoảng mười phút."],
+  ["A","중간에 갈아타야 하나요?","Có phải đổi tàu giữa chừng không?"],
+  ["B","아니요, 갈아탈 필요 없어요. 바로 가요.","Không, không cần đổi tàu. Đi thẳng luôn."],
+  ["A","다음 지하철은 언제 와요?","Chuyến tàu tiếp theo khi nào đến?"],
+  ["B","삼 분 뒤에 도착해요. 안전선 뒤에서 기다리세요.","Ba phút nữa sẽ đến. Hãy đợi sau vạch an toàn."]]},
+ {ko:"옷 쇼핑하기", vi:"Mua sắm quần áo", lines:[
+  ["A","이 티셔츠 다른 색도 있어요?","Cái áo thun này có màu khác không?"],
+  ["B","네, 검은색과 흰색이 있어요.","Có, có màu đen và màu trắng."],
+  ["A","흰색으로 입어 봐도 될까요?","Tôi mặc thử màu trắng được không?"],
+  ["B","물론이죠. 탈의실은 저쪽에 있어요.","Dĩ nhiên rồi. Phòng thử đồ ở đằng kia."],
+  ["A","조금 작은 것 같아요. 한 치수 큰 걸로 주세요.","Hình như hơi nhỏ. Cho tôi cỡ lớn hơn một size."],
+  ["B","잠시만요. 창고에서 가져다 드릴게요.","Xin chờ chút. Tôi sẽ lấy từ kho cho bạn."],
+  ["A","이 바지는 세일 중이에요?","Cái quần này đang giảm giá phải không?"],
+  ["B","네, 지금 삼십 퍼센트 할인해요.","Vâng, hiện đang giảm 30%."],
+  ["A","그럼 티셔츠랑 바지 둘 다 살게요.","Vậy tôi mua cả áo và quần."],
+  ["B","감사합니다. 영수증 필요하세요?","Cảm ơn bạn. Bạn có cần hóa đơn không?"]]}
+];
+let t=0, idx=0, recog=null, listening=false, audio=null;
+const cache = new Map();
+const $ = id => document.getElementById(id);
+const cur = () => TOPICS[t].lines[idx];
+
+/* ---- LocalStorage (an toàn) ---- */
+const store = {
+  get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
+  set(k,v){ try{ localStorage.setItem(k,v); return true; }catch(e){ return false; } },
+  del(k){ try{ localStorage.removeItem(k); }catch(e){} }
+};
+function setStatus(msg, err){ $('status').textContent = msg; $('status').classList.toggle('err', !!err); }
+
+/* ---- Khởi tạo menu ---- */
+VOICES.forEach(v=>{ const o=document.createElement('option'); o.value=v.id; o.textContent=v.name; $('voiceSel').appendChild(o); });
+TOPICS.forEach((p,i)=>{ const o=document.createElement('option'); o.value=i; o.textContent='Bài '+(i+1)+': '+p.ko+' ('+p.vi+')'; $('topicSel').appendChild(o); });
+$('apiKey').value = store.get('el_key') || '';
+$('customVoice').value = store.get('el_custom') || '';
+const savedVoice = store.get('el_voice'); if(savedVoice && VOICES.some(v=>v.id===savedVoice)) $('voiceSel').value = savedVoice;
+if($('apiKey').value) $('keyHint').textContent = '✅ Đã nạp API key đã lưu trong LocalStorage.';
+
+$('bSave').onclick = ()=>{
+  const k = $('apiKey').value.trim();
+  if(!k){ store.del('el_key'); $('keyHint').textContent='Đã xoá API key khỏi LocalStorage.'; return; }
+  const ok = store.set('el_key', k);
+  $('keyHint').textContent = ok ? '✅ Đã lưu API key vào LocalStorage.' : '⚠️ Không thể lưu (LocalStorage bị chặn). Key chỉ dùng cho phiên hiện tại.';
+};
+$('voiceSel').onchange = ()=>store.set('el_voice', $('voiceSel').value);
+$('customVoice').onchange = ()=>store.set('el_custom', $('customVoice').value.trim());
+const voiceId = () => $('customVoice').value.trim() || $('voiceSel').value;
+
+/* ---- Hiển thị bài học ---- */
+function renderList(){
+  $('listTitle').textContent = 'Hội thoại: '+TOPICS[t].ko;
+  $('list').innerHTML='';
+  TOPICS[t].lines.forEach((l,i)=>{
+    const b=document.createElement('button');
+    b.className='line'+(i===idx?' active':'')+(i<idx?' done':'');
+    b.innerHTML='<div class="sp '+l[0]+'">'+l[0]+'</div><div><div class="ko"></div><div class="vi"></div></div>';
+    b.querySelector('.ko').textContent=l[1];
+    b.querySelector('.vi').textContent=l[2];
+    b.onclick=()=>{idx=i;render();};
+    $('list').appendChild(b);
+  });
+}
+function render(){
+  stopAll();
+  const l=cur();
+  $('topicSel').value=t;
+  renderList();
+  $('curSp').textContent=l[0]; $('curSp').className='sp '+l[0];
+  $('curKo').textContent=l[1]; $('curVi').textContent=l[2];
+  $('pos').textContent='Câu '+(idx+1)+'/10';
+  $('barFill').style.width=((idx+1)*10)+'%';
+  $('bPrev').disabled=idx===0; $('bNext').disabled=idx===9;
+  $('result').classList.add('hidden'); setStatus('');
+}
+
+/* ---- ElevenLabs TTS ---- */
+async function fetchAudio(text, vid, key){
+  const ck = vid+'|'+text;
+  if(cache.has(ck)) return cache.get(ck);
+  const res = await fetch('https://api.elevenlabs.io/v1/text-to-speech/'+encodeURIComponent(vid), {
+    method:'POST',
+    headers:{'xi-api-key':key,'Content-Type':'application/json','Accept':'audio/mpeg'},
+    body:JSON.stringify({text:text, model_id:'eleven_multilingual_v2'})
+  });
+  if(!res.ok){
+    let detail=''; try{ const j=await res.json(); detail=(j.detail&&(j.detail.message||j.detail))||''; if(typeof detail!=='string') detail=JSON.stringify(detail);}catch(e){}
+    const map={401:'API key không hợp lệ.',402:'Gói ElevenLabs của bạn không đủ quyền hoặc hết hạn mức.',404:'Không tìm thấy Voice ID này.',422:'Yêu cầu không hợp lệ (kiểm tra Voice ID).',429:'Gửi quá nhiều yêu cầu, hãy đợi một chút.'};
+    throw new Error((map[res.status]||('Lỗi '+res.status))+(detail?' ('+detail+')':''));
+  }
+  const url = URL.createObjectURL(await res.blob());
+  cache.set(ck,url);
+  return url;
+}
+async function speak(rate){
+  const key = $('apiKey').value.trim();
+  if(!key){ setStatus('Hãy nhập ElevenLabs API Key và bấm Lưu trước.', true); return; }
+  stopAll();
+  setStatus('⏳ Đang tạo giọng đọc từ ElevenLabs…');
+  try{
+    const url = await fetchAudio(cur()[1], voiceId(), key);
+    audio = new Audio(url);
+    audio.preservesPitch = true;
+    audio.playbackRate = rate;
+    audio.onplay = ()=>setStatus(rate<1?'🐢 Đang đọc chậm…':'🔊 Đang đọc mẫu…');
+    audio.onended = ()=>setStatus('Giờ hãy bấm 🎙️ Bắt đầu nói và nhắc lại nhé!');
+    await audio.play();
+  }catch(e){
+    const m = e instanceof TypeError ? 'Không kết nối được tới ElevenLabs. Kiểm tra mạng, hoặc mở file này trực tiếp từ máy (không qua trang bị chặn kết nối).' : e.message;
+    setStatus('⚠️ '+m, true);
+  }
+}
+
+/* ---- STT ---- */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+function stopAll(){
+  if(audio){ try{audio.pause();}catch(e){} audio=null; }
+  if(recog && listening){ try{recog.abort();}catch(e){} }
+  setListening(false);
+}
+function setListening(on){
+  listening=on;
+  $('bRec').classList.toggle('on',on);
+  $('bRec').textContent=on?'⏹️ Dừng':'🎙️ Bắt đầu nói';
+}
+function startRec(){
+  if(listening){ recog.stop(); return; }
+  if(!SR){ setStatus('Trình duyệt không hỗ trợ nhận diện giọng nói. Hãy dùng Chrome hoặc Edge.', true); return; }
+  stopAll();
+  recog=new SR();
+  recog.lang='ko-KR'; recog.interimResults=true; recog.continuous=false; recog.maxAlternatives=1;
+  let finalText='';
+  recog.onstart=()=>{ setListening(true); setStatus('🎙️ Đang nghe… hãy nói tiếng Hàn.'); };
+  recog.onresult=e=>{ let s=''; for(let i=0;i<e.results.length;i++) s+=e.results[i][0].transcript; finalText=s; setStatus('🎙️ '+s); };
+  recog.onerror=e=>{
+    const m={'not-allowed':'Bạn chưa cấp quyền micro. Hãy cho phép micro trong trình duyệt.',
+      'service-not-allowed':'Micro bị chặn. Hãy cho phép micro trong trình duyệt.',
+      'no-speech':'Không nghe thấy giọng nói. Hãy thử lại.',
+      'audio-capture':'Không tìm thấy micro.','network':'Lỗi mạng khi nhận diện giọng nói.'};
+    setStatus(m[e.error]||('Lỗi: '+e.error), true); finalText='';
+  };
+  recog.onend=()=>{ setListening(false); if(finalText.trim()){ setStatus(''); evaluate(finalText.trim()); } };
+  try{ recog.start(); }catch(err){ setStatus('Không thể bắt đầu thu âm.', true); }
+}
+
+/* ---- So sánh & chấm điểm ---- */
+const norm=s=>s.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu,'').split(/\s+/).filter(Boolean);
+function evaluate(spoken){
+  const tgtRaw=cur()[1].split(/\s+/).filter(Boolean);
+  const tgt=tgtRaw.map(w=>norm(w).join(''));
+  const say=norm(spoken);
+  const n=tgt.length, m=say.length;
+  const dp=Array.from({length:n+1},()=>Array(m+1).fill(0));
+  for(let i=1;i<=n;i++) for(let j=1;j<=m;j++)
+    dp[i][j]=tgt[i-1]===say[j-1]?dp[i-1][j-1]+1:Math.max(dp[i-1][j],dp[i][j-1]);
+  const ok=Array(n).fill(false);
+  let i=n,j=m;
+  while(i>0&&j>0){
+    if(tgt[i-1]===say[j-1]){ok[i-1]=true;i--;j--;}
+    else if(dp[i-1][j]>=dp[i][j-1]) i--; else j--;
+  }
+  const pct=Math.round(dp[n][m]/n*100);
+  $('words').innerHTML='';
+  tgtRaw.forEach((w,k)=>{ const s=document.createElement('span'); s.className='w '+(ok[k]?'ok':'no'); s.textContent=w; $('words').appendChild(s); });
+  $('heard').textContent=spoken;
+  $('pct').textContent=pct+'%';
+  const good=pct>=80, col=good?'var(--good)':'var(--bad)';
+  $('ring').style.background='conic-gradient('+col+' '+(pct*3.6)+'deg, var(--border) 0)';
+  $('pct').style.color=col;
+  $('msg').className='msg '+(good?'good':'bad');
+  $('msg').innerHTML=good?'최고예요! 🎉<small>Tuyệt vời!</small>':'다시 시도해 보세요 💪<small>Hãy thử lại nhé</small>';
+  $('result').classList.remove('hidden');
+  $('result').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+$('bNormal').onclick=()=>speak(1);
+$('bSlow').onclick=()=>speak(0.7);
+$('bRec').onclick=startRec;
+$('bPrev').onclick=()=>{ if(idx>0){idx--;render();} };
+$('bNext').onclick=()=>{ if(idx<9){idx++;render();} };
+$('topicSel').onchange=e=>{ t=+e.target.value; idx=0; render(); };
+render();
+</script>
+</body>
+</html>
